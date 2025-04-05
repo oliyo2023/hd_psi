@@ -51,6 +51,14 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		memberGroup.POST("", memberController.CreateMember)
 		memberGroup.PUT("/:id", memberController.UpdateMember)
 		memberGroup.DELETE("/:id", memberController.DeleteMember)
+
+		// 会员积分路由
+		memberPointsController := controllers.NewMemberPointsController(db)
+		memberGroup.GET("/:id/points", memberPointsController.GetMemberPoints)
+		memberGroup.GET("/:id/points/transactions", memberPointsController.ListPointsTransactions)
+		memberGroup.POST("/:id/points/add", memberPointsController.AddPoints)
+		memberGroup.POST("/:id/points/deduct", memberPointsController.DeductPoints)
+		memberGroup.POST("/:id/level/calculate", memberPointsController.CalculateMemberLevel)
 	}
 
 	// 店铺管理路由
@@ -109,5 +117,39 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		checkGroup.PUT("/:id/items/:itemId", inventoryCheckController.UpdateCheckItem)
 		checkGroup.POST("/:id/adjustments", inventoryCheckController.CreateAdjustment)
 		checkGroup.PUT("/adjustments/:adjustmentId/approve", inventoryCheckController.ApproveAdjustment)
+	}
+
+	// 销售管理路由
+	salesController := controllers.NewSalesController(db)
+	salesGroup := r.Group("/sales")
+	{
+		// 销售订单路由
+		salesGroup.GET("/orders", salesController.ListOrders)
+		salesGroup.GET("/orders/:id", salesController.GetOrder)
+		salesGroup.POST("/orders", salesController.CreateOrder)
+		salesGroup.PUT("/orders/:id/status", salesController.UpdateOrderStatus)
+
+		// 退换货路由
+		salesGroup.POST("/returns", salesController.CreateReturnOrder)
+		salesGroup.PUT("/returns/:id/status", salesController.UpdateReturnOrderStatus)
+	}
+
+	// 试衣管理路由
+	fittingController := controllers.NewFittingController(db)
+	fittingGroup := r.Group("/fitting")
+	{
+		// 试衣间路由
+		fittingGroup.GET("/rooms", fittingController.ListFittingRooms)
+		fittingGroup.GET("/rooms/:id", fittingController.GetFittingRoom)
+		fittingGroup.POST("/rooms", fittingController.CreateFittingRoom)
+		fittingGroup.PUT("/rooms/:id", fittingController.UpdateFittingRoom)
+		fittingGroup.DELETE("/rooms/:id", fittingController.DeleteFittingRoom)
+
+		// 试衣记录路由
+		fittingGroup.GET("/records", fittingController.ListFittingRecords)
+		fittingGroup.GET("/records/:id", fittingController.GetFittingRecord)
+		fittingGroup.POST("/records", fittingController.CreateFittingRecord)
+		fittingGroup.PUT("/records/:id", fittingController.UpdateFittingRecord)
+		fittingGroup.PUT("/records/:id/complete", fittingController.CompleteFitting)
 	}
 }

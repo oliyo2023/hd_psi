@@ -2,6 +2,7 @@ package main
 
 import (
 	"hd_psi/config"
+	"hd_psi/controllers"
 	"hd_psi/models"
 	"hd_psi/routes"
 
@@ -31,6 +32,17 @@ func main() {
 		&models.InventoryAlert{},
 		&models.InventoryThreshold{},
 		&models.Member{},
+		&models.InventoryCheck{},
+		&models.InventoryCheckItem{},
+		&models.InventoryCheckAdjustment{},
+		&models.SalesOrder{},
+		&models.SalesOrderItem{},
+		&models.NegotiationRecord{},
+		&models.FittingRecord{},
+		&models.ReturnOrder{},
+		&models.ReturnOrderItem{},
+		&models.FittingRoom{},
+		&controllers.PointsTransaction{},
 	)
 	// 初始化Gin引擎
 	r := gin.Default()
