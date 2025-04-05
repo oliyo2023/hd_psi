@@ -57,7 +57,18 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 			purchaseGroup.GET("/:id", purchaseController.GetPurchaseOrder)
 			purchaseGroup.POST("", middleware.RoleAuth("admin", "manager"), purchaseController.CreatePurchaseOrder)
 			purchaseGroup.PUT("/:id", middleware.RoleAuth("admin", "manager"), purchaseController.UpdatePurchaseOrder)
+			purchaseGroup.PUT("/:id/status", middleware.RoleAuth("admin", "manager"), purchaseController.UpdatePurchaseOrderStatus)
 			purchaseGroup.DELETE("/:id", middleware.RoleAuth("admin"), purchaseController.DeletePurchaseOrder)
+		}
+
+		// 采购入库路由
+		purchaseReceivingController := controllers.NewPurchaseReceivingController(db)
+		receivingGroup := api.Group("/purchase-receivings")
+		{
+			receivingGroup.GET("", purchaseReceivingController.ListPurchaseReceivings)
+			receivingGroup.GET("/:id", purchaseReceivingController.GetPurchaseReceiving)
+			receivingGroup.POST("", middleware.RoleAuth("admin", "manager", "staff"), purchaseReceivingController.CreatePurchaseReceiving)
+			receivingGroup.DELETE("/:id", middleware.RoleAuth("admin", "manager"), purchaseReceivingController.DeletePurchaseReceiving)
 		}
 
 		// 会员管理路由

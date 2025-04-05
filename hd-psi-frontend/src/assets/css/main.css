@@ -1,0 +1,89 @@
+/* 全局样式 */
+:root {
+  --primary-color: #18a058;
+  --primary-hover-color: #36ad6a;
+  --primary-active-color: #0c7a43;
+  --primary-bg-color: #f0f9eb;
+  --success-color: #18a058;
+  --warning-color: #f0a020;
+  --error-color: #d03050;
+  --info-color: #2080f0;
+  --text-color-primary: #303133;
+  --text-color-regular: #606266;
+  --text-color-secondary: #909399;
+  --border-color-base: #dcdfe6;
+  --border-color-light: #e4e7ed;
+  --border-color-lighter: #ebeef5;
+  --border-color-extra-light: #f2f6fc;
+  --background-color-base: #f5f7fa;
+}
+
+/* 通用样式 */
+.page-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-color-primary);
+}
+
+.page-content {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-actions {
+  margin-top: 24px;
+  text-align: right;
+}
+
+.form-actions button {
+  margin-left: 8px;
+}
+
+/* 表格样式 */
+.table-toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-search {
+  display: flex;
+  gap: 8px;
+}
+
+/* 卡片样式 */
+.card-container {
+  margin-bottom: 16px;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .page-title {
+    margin-bottom: 16px;
+  }
+  
+  .table-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .table-search {
+    margin-bottom: 16px;
+    width: 100%;
+  }
+}
