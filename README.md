@@ -1,6 +1,6 @@
 # 服装进销存系统 (HD-PSI)
 
-基于 Go + Gin + GORM 开发的服装行业进销存管理系统。
+基于 Go + Gin + GORM 开发的服装行业进销存管理系统，前端使用 Vue 3 + Element Plus。
 
 ## 项目进度
 
@@ -47,7 +47,7 @@
    - 消费分析
    - 智能推荐
 
-4. 前端开发
+4. 前端开发 (进行中)
    - Vue3 + Element Plus 界面
    - 移动端 H5
 
@@ -58,21 +58,38 @@
 
 ## 技术栈
 
-- 后端：Go 1.21
+### 后端
+- Go 1.21
 - Web 框架：Gin 1.9.1
 - ORM：GORM 1.25.5
 - 数据库：MySQL 8.0
+- JWT 认证
+
+### 前端
+- Vue 3
+- Element Plus UI库
+- Axios HTTP客户端
+- Vue Router
 
 ## 项目结构
 
 ```
 hd_psi/
-├── config/         # 配置文件
-├── controllers/    # 控制器
-├── models/         # 数据模型
-├── routes/         # 路由配置
-├── utils/          # 工具类
-└── main.go         # 程序入口
+├── backend/        # Go后端项目
+│   ├── config/     # 配置文件
+│   ├── controllers/ # 控制器
+│   ├── middleware/  # 中间件
+│   ├── models/     # 数据模型
+│   ├── routes/     # 路由配置
+│   ├── utils/      # 工具类
+│   ├── go.mod      # Go模块文件
+│   └── main.go     # 程序入口
+└── frontend/       # Vue前端项目
+    ├── css/        # 样式文件
+    ├── js/         # JavaScript文件
+    │   ├── components/ # Vue组件
+    │   └── services/   # API服务
+    └── index.html  # 主页面
 ```
 
 ## 开发团队
@@ -81,7 +98,40 @@ hd_psi/
 
 ## 开发环境搭建
 
-待补充
+### 后端
+
+1. 进入后端目录
+```bash
+cd backend
+```
+
+2. 安装依赖
+```bash
+go mod tidy
+```
+
+3. 运行后端服务
+```bash
+go run main.go
+```
+
+### 前端
+
+1. 进入前端目录
+```bash
+cd frontend
+```
+
+2. 使用任意 HTTP 服务器运行前端项目，例如：
+```bash
+# 如果安装了 Python
+python -m http.server 8081
+
+# 或者使用 Node.js 的 http-server
+npx http-server -p 8081
+```
+
+3. 在浏览器中访问 http://localhost:8081
 
 ## 部署指南
 

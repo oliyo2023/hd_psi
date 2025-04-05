@@ -3,6 +3,7 @@ package main
 import (
 	"hd_psi/backend/config"
 	"hd_psi/backend/controllers"
+	"hd_psi/backend/middleware"
 	"hd_psi/backend/models"
 	"hd_psi/backend/routes"
 
@@ -47,6 +48,9 @@ func main() {
 	)
 	// 初始化Gin引擎
 	r := gin.Default()
+
+	// 使用CORS中间件
+	r.Use(middleware.CORSMiddleware())
 
 	// 注册路由
 	routes.RegisterRoutes(r, db)

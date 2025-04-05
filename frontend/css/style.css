@@ -1,0 +1,145 @@
+/* 全局样式 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f5f7fa;
+}
+
+/* 登录页样式 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #2c3e50;
+}
+
+.login-form {
+    width: 400px;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #409EFF;
+    font-size: 24px;
+}
+
+/* 主布局样式 */
+.app-container {
+    min-height: 100vh;
+}
+
+.main-content {
+    padding: 20px;
+    margin-left: 200px;
+    transition: margin-left 0.3s;
+}
+
+.main-content.collapsed {
+    margin-left: 64px;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    height: 100%;
+    background-color: #304156;
+}
+
+.sidebar .el-menu {
+    border-right: none;
+}
+
+.sidebar-logo {
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background-color: #2b2f3a;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+/* 表格样式 */
+.table-container {
+    margin-top: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.table-title {
+    font-size: 18px;
+    color: #303133;
+    font-weight: bold;
+}
+
+/* 表单样式 */
+.form-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.form-footer {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/* 卡片样式 */
+.dashboard-card {
+    height: 108px;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card-title {
+    font-size: 16px;
+    color: #909399;
+}
+
+.dashboard-card-value {
+    font-size: 30px;
+    color: #303133;
+    margin-top: 10px;
+}
+
+.dashboard-card-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 48px;
+    color: #f0f0f0;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .login-form {
+        width: 90%;
+    }
+}
