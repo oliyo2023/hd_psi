@@ -23,6 +23,7 @@ func main() {
 
 	// 自动迁移数据模型
 	db.AutoMigrate(
+		&models.User{},
 		&models.Product{},
 		&models.Inventory{},
 		&models.Supplier{},
