@@ -2,7 +2,7 @@ package models
 
 type Product struct {
 	ID          uint   `gorm:"primaryKey"`
-	SKU         string `gorm:"uniqueIndex"`
+	SKU         string `gorm:"size:255;uniqueIndex"`
 	Name        string
 	Color       string
 	Size        string

@@ -18,7 +18,7 @@ func GetDBConfig() string {
 	}
 	password := os.Getenv("DB_PASSWORD")
 	if password == "" {
-		password = "123456"
+		password = "gemini4094"
 	}
 	dbname := os.Getenv("DB_NAME")
 	if dbname == "" {
