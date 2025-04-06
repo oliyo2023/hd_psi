@@ -97,11 +97,16 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
 
+  // 如果需要认证且没有token，重定向到登录页
   if (requiresAuth && !token) {
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/dashboard')
-  } else {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  }
+  // 如果已登录且访问登录页，重定向到首页
+  else if (to.path === '/login' && token) {
+    next({ path: '/dashboard' })
+  }
+  // 其他情况正常导航
+  else {
     next()
   }
 })

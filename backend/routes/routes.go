@@ -49,6 +49,17 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 			inventoryGroup.DELETE("/:id", middleware.RoleAuth("admin"), inventoryController.DeleteInventory)
 		}
 
+		// 供应商管理路由
+		supplierController := controllers.NewSupplierController(db)
+		supplierGroup := api.Group("/suppliers")
+		{
+			supplierGroup.GET("", supplierController.ListSuppliers)
+			supplierGroup.GET("/:id", supplierController.GetSupplier)
+			supplierGroup.POST("", middleware.RoleAuth("admin", "manager"), supplierController.CreateSupplier)
+			supplierGroup.PUT("/:id", middleware.RoleAuth("admin", "manager"), supplierController.UpdateSupplier)
+			supplierGroup.DELETE("/:id", middleware.RoleAuth("admin"), supplierController.DeleteSupplier)
+		}
+
 		// 采购管理路由
 		purchaseController := controllers.NewPurchaseController(db)
 		purchaseGroup := api.Group("/purchases")

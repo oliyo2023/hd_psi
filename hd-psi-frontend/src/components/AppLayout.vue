@@ -19,29 +19,36 @@
                     bordered
                     class="sidebar"
                   >
-                    <div class="logo">
-                      <h2 v-if="!collapsed">服装进销存系统</h2>
-                      <h2 v-else>HD</h2>
+                    <div class="logo-container">
+                      <div class="logo">
+                        <div class="logo-icon">
+                          <span>HD</span>
+                        </div>
+                        <h2 v-if="!collapsed" class="logo-text">服装进销存</h2>
+                      </div>
                     </div>
-                    <n-menu
-                      :collapsed="collapsed"
-                      :collapsed-width="64"
-                      :collapsed-icon-size="22"
-                      :options="menuOptions"
-                      :render-label="renderMenuLabel"
-                      :render-icon="renderMenuIcon"
-                      :value="activeKey"
-                      @update:value="handleMenuUpdate"
-                    />
+                    <div class="menu-container">
+                      <n-menu
+                        :collapsed="collapsed"
+                        :collapsed-width="64"
+                        :collapsed-icon-size="22"
+                        :options="menuOptions"
+                        :render-label="renderMenuLabel"
+                        :render-icon="renderMenuIcon"
+                        :value="activeKey"
+                        @update:value="handleMenuUpdate"
+                        class="custom-menu"
+                      />
+                    </div>
                   </n-layout-sider>
-                  
+
                   <!-- 主内容区 -->
                   <n-layout>
                     <!-- 顶部导航栏 -->
                     <n-layout-header bordered class="header">
                       <div class="header-content">
                         <div class="left">
-                          <n-button quaternary circle @click="collapsed = !collapsed">
+                          <n-button quaternary circle @click="collapsed = !collapsed" class="toggle-button">
                             <template #icon>
                               <n-icon size="20">
                                 <MenuOutline v-if="collapsed" />
@@ -49,25 +56,50 @@
                               </n-icon>
                             </template>
                           </n-button>
+                          <div class="page-title">
+                            {{ getPageTitle() }}
+                          </div>
                         </div>
                         <div class="right">
-                          <n-dropdown :options="userOptions" @select="handleUserAction">
-                            <n-button quaternary>
-                              {{ currentUser.name || currentUser.username }}
-                              <n-icon size="14" style="margin-left: 5px">
+                          <div class="header-actions">
+                            <n-button quaternary circle class="action-button">
+                              <template #icon>
+                                <n-icon size="18">
+                                  <NotificationsOutline />
+                                </n-icon>
+                              </template>
+                            </n-button>
+                            <n-button quaternary circle class="action-button">
+                              <template #icon>
+                                <n-icon size="18">
+                                  <SearchOutline />
+                                </n-icon>
+                              </template>
+                            </n-button>
+                          </div>
+                          <n-dropdown :options="userOptions" @select="handleUserAction" trigger="click">
+                            <div class="user-dropdown">
+                              <div class="user-avatar">
+                                {{ getUserInitials() }}
+                              </div>
+                              <div class="user-info" v-if="!collapsed">
+                                <div class="user-name">{{ currentUser.name || currentUser.username }}</div>
+                                <div class="user-role">{{ getUserRole() }}</div>
+                              </div>
+                              <n-icon size="14" class="dropdown-icon">
                                 <ChevronDownOutline />
                               </n-icon>
-                            </n-button>
+                            </div>
                           </n-dropdown>
                         </div>
                       </div>
                     </n-layout-header>
-                    
+
                     <!-- 内容区 -->
                     <n-layout-content class="content">
                       <router-view />
                     </n-layout-content>
-                    
+
                     <!-- 页脚 -->
                     <n-layout-footer bordered class="footer">
                       <p>© {{ new Date().getFullYear() }} 服装进销存系统 (HD-PSI)</p>
@@ -87,20 +119,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { 
-  NConfigProvider, NLayout, NLayoutSider, NLayoutHeader, 
+import {
+  NConfigProvider, NLayout, NLayoutSider, NLayoutHeader,
   NLayoutContent, NLayoutFooter, NMenu, NButton, NIcon,
   NDropdown, NMessageProvider, NNotificationProvider,
   NDialogProvider, NLoadingBarProvider
 } from 'naive-ui'
 import { zhCN, darkTheme } from 'naive-ui'
-import { 
-  HomeOutline, CartOutline, PeopleOutline, 
+import {
+  HomeOutline, CartOutline, PeopleOutline,
   PersonOutline, LogOutOutline, SettingsOutline,
   MenuOutline, CloseOutline, ChevronDownOutline,
-  BagHandleOutline, StorefrontOutline, CubeOutline
+  BagHandleOutline, StorefrontOutline, CubeOutline,
+  NotificationsOutline, SearchOutline
 } from '@vicons/ionicons5'
 import auth from '../services/auth'
 
@@ -218,7 +251,7 @@ const handleMenuUpdate = (key) => {
     }
     return null
   }
-  
+
   const path = findPath(menuOptions, key)
   if (path) router.push(path)
 }
@@ -233,36 +266,229 @@ const handleUserAction = (key) => {
   }
 }
 
-// 生命周期钩子
-onMounted(() => {
+// 获取页面标题
+const getPageTitle = () => {
+  const path = route.path
+  const pageTitles = {
+    '/dashboard': '仪表盘',
+    '/products': '商品管理',
+    '/inventory': '库存管理',
+    '/members': '会员管理',
+    '/purchases': '采购管理',
+    '/suppliers': '供应商管理',
+    '/sales': '销售管理'
+  }
+
+  // 处理子路径
+  if (path.startsWith('/purchases/')) {
+    if (path.includes('create')) {
+      return '创建采购单'
+    }
+    return '采购单详情'
+  }
+
+  if (path.startsWith('/suppliers/')) {
+    return '供应商详情'
+  }
+
+  return pageTitles[path] || '服装进销存系统'
+}
+
+// 获取用户角色文本
+const getUserRole = () => {
+  const roleMap = {
+    'admin': '管理员',
+    'manager': '经理',
+    'staff': '员工'
+  }
+  return roleMap[currentUser.value?.role] || '用户'
+}
+
+// 获取用户名首字母作为头像
+const getUserInitials = () => {
+  const name = currentUser.value?.name || currentUser.value?.username || ''
+  if (!name) return 'U'
+
+  // 如果是中文名字，取第一个字
+  if (/[\u4e00-\u9fa5]/.test(name)) {
+    return name.charAt(0)
+  }
+
+  // 如果是英文名字，取首字母
+  return name.charAt(0).toUpperCase()
+}
+
+// 检查登录状态并更新用户信息
+const checkAuthStatus = () => {
+  // 检查用户是否已登录
   isLoggedIn.value = auth.isAuthenticated()
   currentUser.value = auth.getCurrentUser() || {}
+
+  // 如果没有用户信息但有token，创建一个模拟用户
+  if (isLoggedIn.value && (!currentUser.value || !currentUser.value.username)) {
+    const mockUser = {
+      id: 1,
+      username: 'admin',
+      name: '模拟用户',
+      role: 'admin'
+    }
+    localStorage.setItem('user', JSON.stringify(mockUser))
+    currentUser.value = mockUser
+  }
+
+  console.log('Auth status checked, isLoggedIn:', isLoggedIn.value)
+}
+
+// 生命周期钩子
+onMounted(() => {
+  checkAuthStatus()
 })
+
+// 监听路由变化
+watch(
+  () => route.path,
+  () => {
+    checkAuthStatus()
+  }
+)
 </script>
 
 <style scoped>
 .app-container {
   height: 100vh;
   width: 100%;
+  overflow-x: hidden;
 }
 
+/* 侧边栏样式 */
 .sidebar {
-  background-color: #001529;
+  background-color: #ffffff;
+  border-right: 1px solid #f1f5f9 !important;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.03);
+  position: relative;
+  z-index: 10;
 }
 
-.logo {
+/* Logo 区域 */
+.logo-container {
   height: 64px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 8px;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
   overflow: hidden;
 }
 
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+}
+
+.logo-icon span {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  color: #0ea5e9;
+}
+
+/* 菜单容器 */
+.menu-container {
+  padding: 8px;
+  height: calc(100% - 64px);
+  overflow: hidden;
+}
+
+/* 自定义菜单样式 */
+.custom-menu :deep(.n-menu-item) {
+  height: 44px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  color: #64748b;
+  transition: all 0.3s;
+}
+
+.custom-menu :deep(.n-menu-item:hover) {
+  color: #0ea5e9;
+  background-color: #f1f5f9;
+}
+
+.custom-menu :deep(.n-menu-item-content) {
+  padding: 0 12px;
+}
+
+.custom-menu :deep(.n-menu-item-content__icon) {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.custom-menu :deep(.n-menu-item.n-menu-item--selected) {
+  background-color: rgba(14, 165, 233, 0.1);
+  color: #0ea5e9;
+  font-weight: 500;
+}
+
+.custom-menu :deep(.n-menu-item.n-menu-item--selected::before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: #0ea5e9;
+  border-radius: 0 4px 4px 0;
+}
+
+.custom-menu :deep(.n-submenu) {
+  margin-bottom: 2px;
+  color: #1e293b;
+}
+
+.custom-menu :deep(.n-submenu-children) {
+  padding-left: 4px;
+}
+
+.custom-menu :deep(.n-submenu-children .n-menu-item) {
+  height: 40px;
+  margin-bottom: 1px;
+}
+
+.custom-menu :deep(.n-submenu.n-submenu--selected) {
+  color: #0ea5e9;
+}
+
+.custom-menu :deep(.n-submenu:hover) {
+  color: #0ea5e9;
+}
+
+/* 头部样式 */
 .header {
   height: 64px;
-  padding: 0 16px;
+  padding: 0 24px;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .header-content {
@@ -272,18 +498,102 @@ onMounted(() => {
   justify-content: space-between;
 }
 
-.content {
-  padding: 24px;
-  min-height: calc(100vh - 64px - 48px);
-  background-color: #f0f2f5;
+.left {
+  display: flex;
+  align-items: center;
 }
 
-.footer {
-  height: 48px;
-  padding: 0 16px;
+.toggle-button {
+  margin-right: 16px;
+  color: #64748b;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  margin-right: 16px;
+}
+
+.action-button {
+  margin-right: 8px;
+  color: #64748b;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: #f1f5f9;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  font-size: 16px;
+  font-weight: 600;
+  margin-right: 10px;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+}
+
+.user-info {
+  margin-right: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.dropdown-icon {
+  color: #64748b;
+}
+
+/* 内容区域 */
+.content {
+  padding: 16px;
+  min-height: calc(100vh - 64px - 48px);
+  background-color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* 页脚 */
+.footer {
+  height: 48px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background-color: #fff;
+  border-top: 1px solid #f1f5f9;
 }
 </style>

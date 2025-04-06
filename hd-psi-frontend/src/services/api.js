@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { useMessage } from 'naive-ui'
 
 // 创建axios实例
 const api = axios.create({
@@ -30,30 +29,26 @@ api.interceptors.response.use(
     return response.data
   },
   error => {
-    const message = useMessage()
-    
+    // 注意: 不要在拦截器中使用 useMessage，因为它需要在组件中使用
+    console.error('API 请求错误:', error)
+
     if (error.response) {
       // 服务器返回错误状态码
       const status = error.response.status
-      const errorMsg = error.response.data?.error || '请求失败'
-      
+
       if (status === 401) {
         // 未授权，清除令牌并重定向到登录页
         localStorage.removeItem('token')
         localStorage.removeItem('user')
-        window.location.href = '/login'
-        message.error('登录已过期，请重新登录')
-      } else {
-        message.error(errorMsg)
+
+        // 使用当前路径作为重定向参数
+        const currentPath = window.location.pathname
+        if (currentPath !== '/login') {
+          window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`
+        }
       }
-    } else if (error.request) {
-      // 请求发送但未收到响应
-      message.error('服务器无响应，请检查网络连接')
-    } else {
-      // 请求设置时出错
-      message.error('请求配置错误')
     }
-    
+
     return Promise.reject(error)
   }
 )
