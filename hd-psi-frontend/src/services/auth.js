@@ -4,12 +4,12 @@ import api from './api'
 export default {
   // 用户登录
   login(username, password) {
-    return api.post('/auth/login', { username, password })
+    return api.post('/api/auth/login', { username, password })
   },
 
   // 用户注册
   register(userData) {
-    return api.post('/auth/register', userData)
+    return api.post('/api/auth/register', userData)
   },
 
   // 获取当前用户信息

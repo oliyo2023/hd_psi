@@ -12,24 +12,32 @@ import (
 func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	// 认证路由 - 不需要认证
 	authController := controllers.NewAuthController(db)
-	authGroup := r.Group("/auth")
+	// 认证路由
+	r.POST("/auth/login", authController.Login)
+	r.POST("/auth/register", authController.Register)
+
+	// API路由组
+	api := r.Group("/api")
+
+	// 认证API路由
+	authGroup := api.Group("/auth")
 	{
 		authGroup.POST("/login", authController.Login)
 		authGroup.POST("/register", authController.Register)
 	}
 
 	// 需要认证的路由
-	api := r.Group("/api")
-	api.Use(middleware.JWTAuth())
+	apiAuth := api.Group("/")
+	apiAuth.Use(middleware.JWTAuth())
 	{
 		// 用户信息路由
-		api.GET("/profile", authController.GetProfile)
-		api.PUT("/profile", authController.UpdateProfile)
-		api.PUT("/change-password", authController.ChangePassword)
+		apiAuth.GET("/profile", authController.GetProfile)
+		apiAuth.PUT("/profile", authController.UpdateProfile)
+		apiAuth.PUT("/change-password", authController.ChangePassword)
 
 		// 商品管理路由
 		productController := controllers.NewProductController(db)
-		productGroup := api.Group("/products")
+		productGroup := apiAuth.Group("/products")
 		{
 			productGroup.GET("", productController.ListProducts)
 			productGroup.GET("/:id", productController.GetProduct)
@@ -40,7 +48,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// 库存管理路由
 		inventoryController := controllers.NewInventoryController(db)
-		inventoryGroup := api.Group("/inventory")
+		inventoryGroup := apiAuth.Group("/inventory")
 		{
 			inventoryGroup.GET("", inventoryController.ListInventories)
 			inventoryGroup.GET("/:id", inventoryController.GetInventory)
@@ -51,7 +59,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// 供应商管理路由
 		supplierController := controllers.NewSupplierController(db)
-		supplierGroup := api.Group("/suppliers")
+		supplierGroup := apiAuth.Group("/suppliers")
 		{
 			supplierGroup.GET("", supplierController.ListSuppliers)
 			supplierGroup.GET("/:id", supplierController.GetSupplier)
@@ -62,7 +70,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// 采购管理路由
 		purchaseController := controllers.NewPurchaseController(db)
-		purchaseGroup := api.Group("/purchases")
+		purchaseGroup := apiAuth.Group("/purchases")
 		{
 			purchaseGroup.GET("", purchaseController.ListPurchaseOrders)
 			purchaseGroup.GET("/:id", purchaseController.GetPurchaseOrder)
@@ -74,7 +82,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// 采购入库路由
 		purchaseReceivingController := controllers.NewPurchaseReceivingController(db)
-		receivingGroup := api.Group("/purchase-receivings")
+		receivingGroup := apiAuth.Group("/purchase-receivings")
 		{
 			receivingGroup.GET("", purchaseReceivingController.ListPurchaseReceivings)
 			receivingGroup.GET("/:id", purchaseReceivingController.GetPurchaseReceiving)
