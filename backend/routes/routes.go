@@ -24,6 +24,9 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	{
 		authGroup.POST("/login", authController.Login)
 		authGroup.POST("/register", authController.Register)
+		authGroup.POST("/refresh-token", authController.RefreshToken)
+		authGroup.POST("/forgot-password", authController.ForgotPassword)
+		authGroup.POST("/reset-password", authController.ResetPassword)
 	}
 
 	// 需要认证的路由

@@ -22,18 +22,40 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// TokenExpiration 定义不同类型令牌的过期时间
+const (
+	// StandardTokenExpiration 标准令牌过期时间 - 24小时
+	StandardTokenExpiration = 24 * time.Hour
+	// RememberMeTokenExpiration 记住我令牌过期时间 - 7天
+	RememberMeTokenExpiration = 7 * 24 * time.Hour
+	// RefreshTokenExpiration 刷新令牌过期时间 - 30天
+	RefreshTokenExpiration = 30 * 24 * time.Hour
+	// PasswordResetTokenExpiration 密码重置令牌过期时间 - 1小时
+	PasswordResetTokenExpiration = 1 * time.Hour
+)
+
 // GenerateToken 生成包含用户信息的JWT令牌
 // 参数：
 //   - userID: 用户唯一标识
 //   - username: 用户登录名
 //   - role: 用户角色
+//   - rememberMe: 是否记住用户，如果为 true，则令牌过期时间更长
 //
 // 返回：
 //   - string: 生成的JWT令牌字符串
+//   - time.Time: 令牌过期时间
 //   - error: 如果生成过程出错则返回错误，否则返回 nil
-func GenerateToken(userID uint, username string, role string) (string, error) {
-	// 设置过期时间 - 24小时
-	expirationTime := time.Now().Add(24 * time.Hour)
+func GenerateToken(userID uint, username string, role string, rememberMe bool) (string, time.Time, error) {
+	// 根据是否记住用户设置过期时间
+	var expiration time.Duration
+	if rememberMe {
+		expiration = RememberMeTokenExpiration
+	} else {
+		expiration = StandardTokenExpiration
+	}
+
+	// 设置过期时间
+	expirationTime := time.Now().Add(expiration)
 
 	// 创建JWT声明
 	claims := &Claims{
@@ -53,10 +75,10 @@ func GenerateToken(userID uint, username string, role string) (string, error) {
 	// 签名令牌
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 
-	return tokenString, nil
+	return tokenString, expirationTime, nil
 }
 
 // ParseToken 解析和验证JWT令牌

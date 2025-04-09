@@ -59,8 +59,8 @@
         </n-form-item>
 
         <div class="login-options">
-          <n-checkbox>记住我</n-checkbox>
-          <a href="#" class="forgot-password">忘记密码?</a>
+          <n-checkbox v-model:checked="formValue.rememberMe">记住我</n-checkbox>
+          <a href="#" class="forgot-password" @click.prevent="showForgotPasswordModal">忘记密码?</a>
         </div>
 
         <div class="login-actions">
@@ -82,6 +82,62 @@
       </div>
     </div>
   </div>
+
+  <!-- 忘记密码模态框 -->
+  <n-modal v-model:show="showForgotModal" preset="card" title="忘记密码" style="width: 400px">
+    <n-form
+      ref="forgotFormRef"
+      :model="forgotForm"
+      :rules="forgotRules"
+      label-placement="top"
+    >
+      <n-form-item path="email" label="邮箱地址">
+        <n-input v-model:value="forgotForm.email" placeholder="请输入您的注册邮箱" />
+      </n-form-item>
+
+      <div class="modal-actions">
+        <n-button @click="showForgotModal = false">取消</n-button>
+        <n-button type="primary" :loading="forgotLoading" @click="handleForgotPassword">提交</n-button>
+      </div>
+    </n-form>
+  </n-modal>
+
+  <!-- 重置密码模态框 -->
+  <n-modal v-model:show="showResetModal" preset="card" title="重置密码" style="width: 400px">
+    <n-form
+      ref="resetFormRef"
+      :model="resetForm"
+      :rules="resetRules"
+      label-placement="top"
+    >
+      <n-form-item path="token" label="重置令牌">
+        <n-input v-model:value="resetForm.token" placeholder="请输入重置令牌" />
+      </n-form-item>
+
+      <n-form-item path="newPassword" label="新密码">
+        <n-input
+          v-model:value="resetForm.newPassword"
+          type="password"
+          show-password-on="click"
+          placeholder="请输入新密码"
+        />
+      </n-form-item>
+
+      <n-form-item path="confirmPassword" label="确认密码">
+        <n-input
+          v-model:value="resetForm.confirmPassword"
+          type="password"
+          show-password-on="click"
+          placeholder="请再次输入新密码"
+        />
+      </n-form-item>
+
+      <div class="modal-actions">
+        <n-button @click="showResetModal = false">取消</n-button>
+        <n-button type="primary" :loading="resetLoading" @click="handleResetPassword">提交</n-button>
+      </div>
+    </n-form>
+  </n-modal>
 </template>
 
 <script setup>
@@ -90,7 +146,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import {
   NForm, NFormItem, NInput, NButton,
-  NCheckbox, NIcon
+  NCheckbox, NIcon, NModal
 } from 'naive-ui'
 import {
   PersonOutline,
@@ -107,7 +163,8 @@ const loading = ref(false)
 // 表单数据
 const formValue = reactive({
   username: '',
-  password: ''
+  password: '',
+  rememberMe: false
 })
 
 // 表单验证规则
@@ -128,11 +185,13 @@ const handleLogin = (e) => {
     if (!errors) {
       loading.value = true
       try {
-        const response = await auth.login(formValue.username, formValue.password)
+        const response = await auth.login(formValue.username, formValue.password, formValue.rememberMe)
 
-        // 保存令牌和用户信息
-        localStorage.setItem('token', response.token)
-        localStorage.setItem('user', JSON.stringify(response.user))
+        // 保存登录响应
+        auth.saveLoginResponse(response)
+
+        // 如果选择了记住我，保存记住我标志
+        localStorage.setItem('rememberMe', formValue.rememberMe)
 
         message.success('登录成功')
 
@@ -142,8 +201,32 @@ const handleLogin = (e) => {
       } catch (error) {
         console.error('登录失败:', error)
 
-        if (error.response && error.response.data && error.response.data.error) {
-          message.error(error.response.data.error)
+        if (error.response && error.response.data) {
+          const errorData = error.response.data
+
+          // 显示错误信息
+          if (errorData.error) {
+            let errorMessage = errorData.error
+
+            // 如果有详细错误信息，显示详细信息
+            if (errorData.details) {
+              errorMessage += ': ' + errorData.details
+            }
+
+            // 如果有剩余尝试次数，显示剩余次数
+            if (errorData.remaining_attempts !== undefined) {
+              errorMessage += ` (剩余尝试次数: ${errorData.remaining_attempts})`
+            }
+
+            // 如果账户被锁定，显示锁定时间
+            if (errorData.wait_minutes) {
+              errorMessage += ` (请等待 ${errorData.wait_minutes} 分钟后再试)`
+            }
+
+            message.error(errorMessage)
+          } else {
+            message.error('登录失败: ' + (error.message || '请检查用户名和密码'))
+          }
         } else {
           message.error('登录失败: ' + (error.message || '请检查用户名和密码'))
         }

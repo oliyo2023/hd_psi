@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"hd_psi/backend/utils"
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -46,6 +48,20 @@ type User struct {
 	LastLogin *time.Time
 	// Status 用户状态，true表示启用，false表示禁用
 	Status bool `gorm:"default:true"`
+	// LoginAttempts 登录尝试次数，用于限制登录失败次数
+	LoginAttempts int `gorm:"default:0"`
+	// LockedUntil 账户锁定时间，如果设置了未来时间，表示账户被临时锁定
+	LockedUntil *time.Time
+	// RefreshToken 用户刷新令牌，用于延长会话时间
+	RefreshToken string `gorm:"size:255"`
+	// RefreshTokenExpiresAt 刷新令牌过期时间
+	RefreshTokenExpiresAt *time.Time
+	// ResetPasswordToken 密码重置令牌
+	ResetPasswordToken string `gorm:"size:255"`
+	// ResetPasswordExpires 密码重置令牌过期时间
+	ResetPasswordExpires *time.Time
+	// RememberMe 记住我标志，用于延长会话时间
+	RememberMe bool `gorm:"default:false"`
 	// CreatedAt 用户创建时间
 	CreatedAt time.Time
 	// UpdatedAt 用户信息最后更新时间
@@ -80,4 +96,140 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
+}
+
+// IsLocked 检查用户账户是否被锁定
+// 如果用户的锁定时间在当前时间之后，则账户被锁定
+// 返回：
+//   - bool: 如果账户被锁定返回 true，否则返回 false
+//   - time.Duration: 如果账户被锁定，返回还需要等待的时间，否则返回 0
+func (u *User) IsLocked() (bool, time.Duration) {
+	if u.LockedUntil == nil {
+		return false, 0
+	}
+
+	now := time.Now()
+	if now.Before(*u.LockedUntil) {
+		return true, u.LockedUntil.Sub(now)
+	}
+
+	return false, 0
+}
+
+// IncrementLoginAttempts 增加登录尝试次数
+// 如果超过最大尝试次数，则锁定账户
+// 参数：
+//   - maxAttempts: 最大尝试次数
+//   - lockDuration: 锁定时间
+//
+// 返回：
+//   - bool: 如果账户被锁定返回 true，否则返回 false
+func (u *User) IncrementLoginAttempts(maxAttempts int, lockDuration time.Duration) bool {
+	u.LoginAttempts++
+
+	if u.LoginAttempts >= maxAttempts {
+		lockTime := time.Now().Add(lockDuration)
+		u.LockedUntil = &lockTime
+		return true
+	}
+
+	return false
+}
+
+// ResetLoginAttempts 重置登录尝试次数
+func (u *User) ResetLoginAttempts() {
+	u.LoginAttempts = 0
+	u.LockedUntil = nil
+}
+
+// GeneratePasswordResetToken 生成密码重置令牌
+// 参数：
+//   - expiresDuration: 令牌过期时间
+//
+// 返回：
+//   - string: 生成的密码重置令牌
+func (u *User) GeneratePasswordResetToken(expiresDuration time.Duration) string {
+	// 生成随机令牌
+	token := utils.GenerateRandomToken(32)
+
+	// 设置过期时间
+	expiresAt := time.Now().Add(expiresDuration)
+	u.ResetPasswordToken = token
+	u.ResetPasswordExpires = &expiresAt
+
+	return token
+}
+
+// VerifyPasswordResetToken 验证密码重置令牌
+// 参数：
+//   - token: 要验证的密码重置令牌
+//
+// 返回：
+//   - bool: 如果令牌有效返回 true，否则返回 false
+func (u *User) VerifyPasswordResetToken(token string) bool {
+	// 检查令牌是否存在
+	if u.ResetPasswordToken == "" || u.ResetPasswordExpires == nil {
+		return false
+	}
+
+	// 检查令牌是否匹配
+	if u.ResetPasswordToken != token {
+		return false
+	}
+
+	// 检查令牌是否过期
+	if time.Now().After(*u.ResetPasswordExpires) {
+		return false
+	}
+
+	return true
+}
+
+// ClearPasswordResetToken 清除密码重置令牌
+func (u *User) ClearPasswordResetToken() {
+	u.ResetPasswordToken = ""
+	u.ResetPasswordExpires = nil
+}
+
+// GenerateRefreshToken 生成刷新令牌
+// 参数：
+//   - expiresDuration: 令牌过期时间
+//
+// 返回：
+//   - string: 生成的刷新令牌
+func (u *User) GenerateRefreshToken(expiresDuration time.Duration) string {
+	// 生成随机令牌
+	token := utils.GenerateRandomToken(32)
+
+	// 设置过期时间
+	expiresAt := time.Now().Add(expiresDuration)
+	u.RefreshToken = token
+	u.RefreshTokenExpiresAt = &expiresAt
+
+	return token
+}
+
+// VerifyRefreshToken 验证刷新令牌
+// 参数：
+//   - token: 要验证的刷新令牌
+//
+// 返回：
+//   - bool: 如果令牌有效返回 true，否则返回 false
+func (u *User) VerifyRefreshToken(token string) bool {
+	// 检查令牌是否存在
+	if u.RefreshToken == "" || u.RefreshTokenExpiresAt == nil {
+		return false
+	}
+
+	// 检查令牌是否匹配
+	if u.RefreshToken != token {
+		return false
+	}
+
+	// 检查令牌是否过期
+	if time.Now().After(*u.RefreshTokenExpiresAt) {
+		return false
+	}
+
+	return true
 }
