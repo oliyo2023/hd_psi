@@ -1,6 +1,7 @@
 package models
 
 import (
+	"reflect"
 	"time"
 
 	"hd_psi/backend/utils"
@@ -76,12 +77,25 @@ type User struct {
 // 返回：
 //   - error: 如果加密过程出错则返回错误，否则返回 nil
 func (u *User) BeforeSave(tx *gorm.DB) error {
-	if len(u.Password) > 0 {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
+	// 检查是否是新记录（创建操作）
+	isNewRecord := !tx.Statement.SkipHooks && (tx.Statement.Schema == nil || tx.Statement.Schema.PrioritizedPrimaryField == nil || tx.Statement.Context == nil || tx.Statement.ReflectValue.Kind() != reflect.Struct || tx.Statement.ReflectValue.FieldByName("ID").Uint() == 0)
+
+	// 检查密码是否被明确更改（密码字段在当前操作中被更新）
+	var passwordChanged bool
+	if tx.Statement.Changed("Password") {
+		passwordChanged = true
+	}
+
+	// 只有在新记录或密码被明确更改时才进行密码加密
+	if (isNewRecord || passwordChanged) && len(u.Password) > 0 {
+		// 检查密码是否已经是哈希值（以$开头的bcrypt哈希值）
+		if len(u.Password) < 60 || u.Password[0] != '$' {
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+			if err != nil {
+				return err
+			}
+			u.Password = string(hashedPassword)
 		}
-		u.Password = string(hashedPassword)
 	}
 	return nil
 }

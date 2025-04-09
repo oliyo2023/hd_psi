@@ -157,14 +157,38 @@ import auth from '../services/auth'
 const router = useRouter()
 const route = useRoute()
 const message = useMessage()
+
+// 表单引用
 const formRef = ref(null)
+const forgotFormRef = ref(null)
+const resetFormRef = ref(null)
+
+// 加载状态
 const loading = ref(false)
+const forgotLoading = ref(false)
+const resetLoading = ref(false)
+
+// 模态框显示状态
+const showForgotModal = ref(false)
+const showResetModal = ref(false)
 
 // 表单数据
 const formValue = reactive({
   username: '',
   password: '',
   rememberMe: false
+})
+
+// 忘记密码表单
+const forgotForm = reactive({
+  email: ''
+})
+
+// 重置密码表单
+const resetForm = reactive({
+  token: '',
+  newPassword: '',
+  confirmPassword: ''
 })
 
 // 表单验证规则
@@ -175,6 +199,35 @@ const rules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6个字符', trigger: 'blur' }
+  ]
+}
+
+// 忘记密码表单验证规则
+const forgotRules = {
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' }
+  ]
+}
+
+// 重置密码表单验证规则
+const resetRules = {
+  token: [
+    { required: true, message: '请输入重置令牌', trigger: 'blur' }
+  ],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        return value === resetForm.newPassword
+      },
+      message: '两次输入的密码不一致',
+      trigger: 'blur'
+    }
   ]
 }
 
@@ -232,6 +285,79 @@ const handleLogin = (e) => {
         }
       } finally {
         loading.value = false
+      }
+    }
+  })
+}
+
+// 显示忘记密码模态框
+const showForgotPasswordModal = () => {
+  showForgotModal.value = true
+  forgotForm.email = ''
+}
+
+// 忘记密码处理
+const handleForgotPassword = () => {
+  forgotFormRef.value?.validate(async (errors) => {
+    if (!errors) {
+      forgotLoading.value = true
+      try {
+        const response = await auth.forgotPassword(forgotForm.email)
+
+        message.success('密码重置链接已发送到您的邮箱')
+
+        // 如果是测试环境，显示重置令牌并打开重置密码模态框
+        if (response.reset_token) {
+          resetForm.token = response.reset_token
+          showForgotModal.value = false
+          showResetModal.value = true
+        } else {
+          showForgotModal.value = false
+        }
+      } catch (error) {
+        console.error('忘记密码处理失败:', error)
+
+        if (error.response && error.response.data && error.response.data.error) {
+          message.error(error.response.data.error)
+        } else {
+          message.error('处理失败: ' + (error.message || '请稍后再试'))
+        }
+      } finally {
+        forgotLoading.value = false
+      }
+    }
+  })
+}
+
+// 重置密码处理
+const handleResetPassword = () => {
+  resetFormRef.value?.validate(async (errors) => {
+    if (!errors) {
+      resetLoading.value = true
+      try {
+        await auth.resetPassword(resetForm.token, resetForm.newPassword)
+
+        message.success('密码重置成功，请使用新密码登录')
+        showResetModal.value = false
+
+        // 清空表单
+        resetForm.token = ''
+        resetForm.newPassword = ''
+        resetForm.confirmPassword = ''
+      } catch (error) {
+        console.error('重置密码失败:', error)
+
+        if (error.response && error.response.data && error.response.data.error) {
+          let errorMessage = error.response.data.error
+          if (error.response.data.details) {
+            errorMessage += ': ' + error.response.data.details
+          }
+          message.error(errorMessage)
+        } else {
+          message.error('重置密码失败: ' + (error.message || '请检查重置令牌是否有效'))
+        }
+      } finally {
+        resetLoading.value = false
       }
     }
   })
@@ -447,6 +573,14 @@ const handleLogin = (e) => {
 .login-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+/* 模态框样式 */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 /* 页脚 */
