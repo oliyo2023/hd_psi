@@ -6,7 +6,7 @@
         添加商品
       </n-button>
     </div>
-    
+
     <div class="page-content">
       <!-- 搜索工具栏 -->
       <div class="table-toolbar">
@@ -38,7 +38,7 @@
           </n-button>
         </div>
       </div>
-      
+
       <!-- 商品表格 -->
       <n-data-table
         ref="tableRef"
@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, h } from 'vue'
-import { 
+import {
   NButton, NDataTable, NInput, NSelect, NSpace
 } from 'naive-ui'
 

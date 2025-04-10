@@ -31,24 +31,24 @@ func GenerateQRCode(sku, batchNumber string, timestamp int64, secretKey string) 
 		BatchNumber: batchNumber,
 		Timestamp:   timestamp,
 	}
-	
+
 	// 将数据转换为JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", fmt.Errorf("JSON编码失败: %v", err)
 	}
-	
+
 	// 生成HMAC校验码
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(jsonData)
 	checksum := h.Sum(nil)
-	
+
 	// 将JSON数据和校验码拼接
 	finalData := append(jsonData, checksum...)
-	
+
 	// Base64编码
 	encodedData := base64.StdEncoding.EncodeToString(finalData)
-	
+
 	return encodedData, nil
 }
 
@@ -66,24 +66,24 @@ func VerifyQRCode(encodedData, secretKey string) (*QRCodeData, bool, error) {
 	if err != nil {
 		return nil, false, fmt.Errorf("Base64解码失败: %v", err)
 	}
-	
+
 	// 数据长度必须大于SHA256校验码长度(32字节)
 	if len(data) <= 32 {
 		return nil, false, fmt.Errorf("数据格式无效")
 	}
-	
+
 	// 分离JSON数据和校验码
 	jsonData := data[:len(data)-32]
 	checksum := data[len(data)-32:]
-	
+
 	// 验证校验码
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(jsonData)
 	expectedChecksum := h.Sum(nil)
-	
+
 	// 比较校验码
 	valid := hmac.Equal(checksum, expectedChecksum)
-	
+
 	// 如果校验码有效，解析JSON数据
 	if valid {
 		var qrData QRCodeData
@@ -92,6 +92,6 @@ func VerifyQRCode(encodedData, secretKey string) (*QRCodeData, bool, error) {
 		}
 		return &qrData, true, nil
 	}
-	
+
 	return nil, false, nil
 }
