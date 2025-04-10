@@ -6,7 +6,7 @@
         添加供应商
       </n-button>
     </div>
-    
+
     <div class="page-content">
       <!-- 搜索工具栏 -->
       <div class="table-toolbar">
@@ -45,7 +45,7 @@
           </n-button>
         </div>
       </div>
-      
+
       <!-- 供应商表格 -->
       <n-data-table
         ref="tableRef"
@@ -64,7 +64,7 @@
 <script setup>
 import { ref, reactive, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
+import {
   NButton, NDataTable, NInput, NSelect, NSpace, NTag, useMessage
 } from 'naive-ui'
 import supplierService from '../services/supplier'
@@ -243,10 +243,10 @@ const loadSuppliers = async () => {
       type: searchForm.type || undefined,
       status: searchForm.status || undefined
     }
-    
+
     // 调用API获取供应商列表
     const response = await supplierService.getSuppliers(params)
-    
+
     // 处理响应数据
     if (response && response.items) {
       suppliers.value = response.items
@@ -295,14 +295,27 @@ const handleAddSupplier = () => {
 }
 
 const handleView = (row) => {
+  if (!row || !row.id) {
+    message.error('无效的供应商ID，无法查看')
+    return
+  }
   router.push(`/suppliers/${row.id}`)
 }
 
 const handleEdit = (row) => {
+  if (!row || !row.id) {
+    message.error('无效的供应商ID，无法编辑')
+    return
+  }
   router.push(`/suppliers/${row.id}?edit=true`)
 }
 
 const handleDelete = async (row) => {
+  if (!row || !row.id) {
+    message.error('无效的供应商ID，无法删除')
+    return
+  }
+
   if (confirm(`确定要删除供应商 ${row.name} 吗？`)) {
     try {
       loading.value = true

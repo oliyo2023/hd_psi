@@ -20,7 +20,7 @@
         </n-space>
       </div>
     </div>
-    
+
     <div class="page-content">
       <n-form
         v-if="isEditing"
@@ -38,13 +38,13 @@
                 <n-input v-model:value="formData.code" placeholder="请输入供应商编码" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="供应商名称" path="name">
                 <n-input v-model:value="formData.name" placeholder="请输入供应商名称" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="供应商类型" path="type">
                 <n-select
@@ -54,19 +54,19 @@
                 />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="联系人" path="contactPerson">
                 <n-input v-model:value="formData.contactPerson" placeholder="请输入联系人" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="联系电话" path="contactPhone">
                 <n-input v-model:value="formData.contactPhone" placeholder="请输入联系电话" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="电子邮箱" path="email">
                 <n-input v-model:value="formData.email" placeholder="请输入电子邮箱" />
@@ -74,7 +74,7 @@
             </n-grid-item>
           </n-grid>
         </n-card>
-        
+
         <n-card title="地址信息" class="mt-4">
           <n-grid :cols="3" :x-gap="24">
             <n-grid-item>
@@ -82,7 +82,7 @@
                 <n-input v-model:value="formData.city" placeholder="请输入城市" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item span="2">
               <n-form-item label="详细地址" path="address">
                 <n-input v-model:value="formData.address" placeholder="请输入详细地址" />
@@ -90,7 +90,7 @@
             </n-grid-item>
           </n-grid>
         </n-card>
-        
+
         <n-card title="合作信息" class="mt-4">
           <n-grid :cols="3" :x-gap="24">
             <n-grid-item>
@@ -102,25 +102,25 @@
                 />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="付款条件" path="paymentTerms">
                 <n-input v-model:value="formData.paymentTerms" placeholder="请输入付款条件" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="交货条件" path="deliveryTerms">
                 <n-input v-model:value="formData.deliveryTerms" placeholder="请输入交货条件" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item span="2">
               <n-form-item label="资质证明" path="qualification">
                 <n-input v-model:value="formData.qualification" placeholder="请输入资质证明" />
               </n-form-item>
             </n-grid-item>
-            
+
             <n-grid-item>
               <n-form-item label="状态" path="status">
                 <n-switch v-model:value="formData.status" />
@@ -128,7 +128,7 @@
             </n-grid-item>
           </n-grid>
         </n-card>
-        
+
         <n-card title="备注" class="mt-4">
           <n-form-item path="note">
             <n-input
@@ -140,7 +140,7 @@
           </n-form-item>
         </n-card>
       </n-form>
-      
+
       <template v-else>
         <n-card title="基本信息">
           <n-descriptions bordered :column="3">
@@ -164,7 +164,7 @@
             </n-descriptions-item>
           </n-descriptions>
         </n-card>
-        
+
         <n-card title="地址信息" class="mt-4">
           <n-descriptions bordered :column="3">
             <n-descriptions-item label="城市">
@@ -175,7 +175,7 @@
             </n-descriptions-item>
           </n-descriptions>
         </n-card>
-        
+
         <n-card title="合作信息" class="mt-4">
           <n-descriptions bordered :column="3">
             <n-descriptions-item label="评级">
@@ -199,12 +199,12 @@
             </n-descriptions-item>
           </n-descriptions>
         </n-card>
-        
+
         <n-card title="备注" class="mt-4">
           <p>{{ supplier.note || '无' }}</p>
         </n-card>
       </template>
-      
+
       <n-card title="采购记录" class="mt-4">
         <n-data-table
           :columns="purchaseColumns"
@@ -339,9 +339,9 @@ const purchaseColumns = [
         completed: { type: 'success', text: '已完成' },
         cancelled: { type: 'error', text: '已取消' }
       }
-      
+
       const status = statusMap[row.status] || { type: 'default', text: '未知' }
-      
+
       return h(NTag, { type: status.type }, { default: () => status.text })
     }
   },
@@ -393,15 +393,21 @@ const getRatingType = (rating) => {
 // 方法
 const loadSupplier = async () => {
   const id = route.params.id
-  if (!id) return
-  
+
+  // 检查ID是否有效
+  if (!id || id === 'undefined' || id === 'null') {
+    message.error('无效的供应商ID')
+    router.push('/suppliers')
+    return
+  }
+
   loading.value = true
   try {
     // 从 API 获取供应商详情
     const response = await supplierService.getSupplier(id)
     if (response) {
       supplier.value = response
-      
+
       // 复制数据到表单
       Object.keys(formData).forEach(key => {
         if (key in supplier.value) {
@@ -413,13 +419,13 @@ const loadSupplier = async () => {
       router.push('/suppliers')
       return
     }
-    
+
     // 加载供应商相关的采购记录
     try {
       // 实际应用中取消下面注释，使用真实API调用
       // const purchaseResponse = await purchaseService.getPurchasesBySupplier(id)
       // purchases.value = purchaseResponse.items || []
-      
+
       // 模拟数据，实际应用中删除
       purchases.value = [
         {
@@ -446,7 +452,7 @@ const loadSupplier = async () => {
       message.error('加载采购记录失败')
       purchases.value = []
     }
-    
+
     // 检查是否是编辑模式
     isEditing.value = route.query.edit === 'true'
   } catch (error) {
@@ -479,16 +485,22 @@ const cancelEdit = () => {
 const handleSave = () => {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
+      // 检查ID是否有效
+      if (!supplier.value || !supplier.value.id) {
+        message.error('无效的供应商ID，无法保存')
+        return
+      }
+
       saving.value = true
       try {
         // 调用API保存供应商数据
         await supplierService.updateSupplier(supplier.value.id, formData)
-        
+
         // 更新本地数据
         Object.keys(formData).forEach(key => {
           supplier.value[key] = formData[key]
         })
-        
+
         isEditing.value = false
         message.success('供应商信息保存成功')
       } catch (error) {
