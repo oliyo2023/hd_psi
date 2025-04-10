@@ -276,7 +276,8 @@ const getPageTitle = () => {
     '/members': '会员管理',
     '/purchases': '采购管理',
     '/suppliers': '供应商管理',
-    '/sales': '销售管理'
+    '/sales': '销售管理',
+    '/profile': '个人信息'
   }
 
   // 处理子路径
@@ -319,36 +320,53 @@ const getUserInitials = () => {
 }
 
 // 检查登录状态并更新用户信息
-const checkAuthStatus = () => {
+const checkAuthStatus = async () => {
   // 检查用户是否已登录
   isLoggedIn.value = auth.isAuthenticated()
-  currentUser.value = auth.getCurrentUser() || {}
 
-  // 如果没有用户信息但有token，创建一个模拟用户
-  if (isLoggedIn.value && (!currentUser.value || !currentUser.value.username)) {
-    const mockUser = {
-      id: 1,
-      username: 'admin',
-      name: '模拟用户',
-      role: 'admin'
+  // 如果已登录，从后端获取最新的用户信息
+  if (isLoggedIn.value) {
+    try {
+      // 尝试从后端获取用户信息
+      const userProfile = await auth.fetchAndUpdateUserProfile()
+      if (userProfile) {
+        currentUser.value = userProfile
+      } else {
+        // 如果无法获取用户信息，尝试使用本地存储的信息
+        currentUser.value = auth.getCurrentUser() || {}
+
+        // 如果本地也没有用户信息，清除令牌并重定向到登录页
+        if (!currentUser.value || !currentUser.value.username) {
+          auth.logout()
+          return
+        }
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      // 如果获取用户信息失败，清除本地存储并重定向到登录页
+      if (error.response && error.response.status === 401) {
+        auth.logout()
+        return
+      }
     }
-    localStorage.setItem('user', JSON.stringify(mockUser))
-    currentUser.value = mockUser
+  } else {
+    // 如果未登录，清除用户信息
+    currentUser.value = {}
   }
 
-  console.log('Auth status checked, isLoggedIn:', isLoggedIn.value)
+  console.log('Auth status checked, isLoggedIn:', isLoggedIn.value, 'currentUser:', currentUser.value)
 }
 
 // 生命周期钩子
-onMounted(() => {
-  checkAuthStatus()
+onMounted(async () => {
+  await checkAuthStatus()
 })
 
 // 监听路由变化
 watch(
   () => route.path,
-  () => {
-    checkAuthStatus()
+  async () => {
+    await checkAuthStatus()
   }
 )
 </script>

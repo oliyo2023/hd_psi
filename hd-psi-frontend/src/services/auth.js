@@ -17,6 +17,21 @@ export default {
     return api.get('/api/profile')
   },
 
+  // 获取并更新当前用户信息
+  async fetchAndUpdateUserProfile() {
+    try {
+      const userData = await this.getProfile()
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData))
+        return userData
+      }
+      return null
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      return null
+    }
+  },
+
   // 更新用户信息
   updateProfile(userData) {
     return api.put('/api/profile', userData)

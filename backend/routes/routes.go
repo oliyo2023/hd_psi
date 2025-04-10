@@ -141,7 +141,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 			alertGroup.GET("", inventoryAlertController.ListAlerts)
 			alertGroup.GET("/:id", inventoryAlertController.GetAlert)
 			alertGroup.PUT("/:id/status", middleware.RoleAuth("admin", "manager"), inventoryAlertController.UpdateAlertStatus)
-			alertGroup.POST("/check", middleware.RoleAuth("admin", "manager"), inventoryAlertController.CheckInventoryLevels)
+			alertGroup.POST("/check", inventoryAlertController.CheckInventoryLevels)
 		}
 
 		// 库存阈值路由

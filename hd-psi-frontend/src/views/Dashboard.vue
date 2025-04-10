@@ -372,13 +372,39 @@ const loadRecentSales = async () => {
 // 检查库存水平
 const checkInventoryLevels = async () => {
   try {
+    // 显示加载中消息
+    message.loading('正在检查库存水平...', { duration: 0 })
+
     // 调用API检查库存水平
-    await inventoryService.checkInventoryLevels()
+    const result = await inventoryService.checkInventoryLevels()
+
+    // 关闭加载中消息
+    message.destroyAll()
+
+    // 显示成功消息
     message.success('库存水平检查完成')
+
+    // 重新加载库存预警数据
     await loadInventoryAlerts()
+
+    return result
   } catch (error) {
+    // 关闭加载中消息
+    message.destroyAll()
+
     console.error('库存水平检查失败:', error)
-    message.error('库存水平检查失败')
+
+    // 显示错误消息
+    if (error.response && error.response.data && error.response.data.error) {
+      message.error(`库存水平检查失败: ${error.response.data.error}`)
+    } else {
+      message.error('库存水平检查失败，请检查网络连接或登录状态')
+    }
+
+    // 如果是权限问题，提示用户
+    if (error.response && error.response.status === 403) {
+      message.warning('您没有执行此操作的权限，请联系管理员')
+    }
   }
 }
 
