@@ -11,6 +11,7 @@ import PurchaseDetail from '../views/PurchaseDetail.vue'
 import PurchaseCreate from '../views/PurchaseCreate.vue'
 import SupplierList from '../views/SupplierList.vue'
 import SupplierDetail from '../views/SupplierDetail.vue'
+import SupplierCreate from '../views/SupplierCreate.vue'
 import NotFound from '../views/NotFound.vue'
 
 // 路由配置
@@ -71,6 +72,12 @@ const routes = [
     path: '/suppliers',
     name: 'SupplierList',
     component: SupplierList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/suppliers/create',
+    name: 'SupplierCreate',
+    component: SupplierCreate,
     meta: { requiresAuth: true }
   },
   {

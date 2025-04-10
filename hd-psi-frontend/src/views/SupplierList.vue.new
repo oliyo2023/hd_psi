@@ -6,7 +6,7 @@
         添加供应商
       </n-button>
     </div>
-
+    
     <div class="page-content">
       <!-- 搜索工具栏 -->
       <div class="table-toolbar">
@@ -45,7 +45,7 @@
           </n-button>
         </div>
       </div>
-
+      
       <!-- 供应商表格 -->
       <n-data-table
         ref="tableRef"
@@ -64,7 +64,7 @@
 <script setup>
 import { ref, reactive, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import {
+import { 
   NButton, NDataTable, NInput, NSelect, NSpace, NTag, useMessage
 } from 'naive-ui'
 import supplierService from '../services/supplier'
@@ -234,7 +234,14 @@ const columns = [
 const loadSuppliers = async () => {
   loading.value = true
   try {
-    // 模拟数据，实际应该从API获取
+    // 从 API 获取供应商列表
+    const params = {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      ...searchForm
+    }
+    
+    // 如果是模拟数据，使用以下代码
     suppliers.value = [
       {
         id: 1,
@@ -305,9 +312,16 @@ const loadSuppliers = async () => {
         note: '合作暂停'
       }
     ]
+    
+    // 实际应用中取消下面注释，使用真实API调用
+    // const response = await supplierService.getSuppliers(params)
+    // suppliers.value = response.items || []
+    // pagination.itemCount = response.total || 0
+    
     pagination.itemCount = suppliers.value.length
   } catch (error) {
     console.error('加载供应商列表失败:', error)
+    message.error('加载供应商列表失败')
   } finally {
     loading.value = false
   }
@@ -373,5 +387,28 @@ onMounted(() => {
 <style scoped>
 .supplier-list {
   padding: 16px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.table-toolbar {
+  margin-bottom: 16px;
+}
+
+.table-search {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 </style>

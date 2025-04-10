@@ -190,6 +190,7 @@ import {
   NButton, NTag, useMessage
 } from 'naive-ui'
 import api from '../services/api'
+import inventoryService from '../services/inventory'
 import {
   CubeOutline, StorefrontOutline, PeopleOutline, CartOutline,
   CalendarOutline, AlertCircleOutline, TimeOutline, RefreshOutline,
@@ -339,9 +340,9 @@ const loadStatistics = async () => {
 const loadInventoryAlerts = async () => {
   try {
     // 从 API 获取库存预警数据
-    const response = await api.get('/api/inventory/alerts')
-    if (response && response.data) {
-      inventoryAlerts.value = response.data || []
+    const response = await inventoryService.getInventoryAlerts({ status: 'active' })
+    if (response) {
+      inventoryAlerts.value = response || []
     }
   } catch (error) {
     console.error('加载库存预警数据失败:', error)
@@ -372,7 +373,7 @@ const loadRecentSales = async () => {
 const checkInventoryLevels = async () => {
   try {
     // 调用API检查库存水平
-    await api.post('/api/inventory/check-levels')
+    await inventoryService.checkInventoryLevels()
     message.success('库存水平检查完成')
     await loadInventoryAlerts()
   } catch (error) {
