@@ -49,8 +49,8 @@
               <n-form-item label="供应商类型" path="type">
                 <n-select
                   v-model:value="formData.type"
-                  placeholder="请选择供应商类型"
                   :options="typeOptions"
+                  placeholder="请选择供应商类型"
                 />
               </n-form-item>
             </n-grid-item>
@@ -72,7 +72,11 @@
                 <n-input v-model:value="formData.email" placeholder="请输入电子邮箱" />
               </n-form-item>
             </n-grid-item>
-            
+          </n-grid>
+        </n-card>
+        
+        <n-card title="地址信息" class="mt-4">
+          <n-grid :cols="3" :x-gap="24">
             <n-grid-item>
               <n-form-item label="城市" path="city">
                 <n-input v-model:value="formData.city" placeholder="请输入城市" />
@@ -80,34 +84,22 @@
             </n-grid-item>
             
             <n-grid-item span="2">
-              <n-form-item label="地址" path="address">
-                <n-input v-model:value="formData.address" placeholder="请输入地址" />
-              </n-form-item>
-            </n-grid-item>
-            
-            <n-grid-item>
-              <n-form-item label="评级" path="rating">
-                <n-select
-                  v-model:value="formData.rating"
-                  placeholder="请选择评级"
-                  :options="ratingOptions"
-                />
-              </n-form-item>
-            </n-grid-item>
-            
-            <n-grid-item>
-              <n-form-item label="状态" path="status">
-                <n-switch v-model:value="formData.status" />
+              <n-form-item label="详细地址" path="address">
+                <n-input v-model:value="formData.address" placeholder="请输入详细地址" />
               </n-form-item>
             </n-grid-item>
           </n-grid>
         </n-card>
         
         <n-card title="合作信息" class="mt-4">
-          <n-grid :cols="2" :x-gap="24">
+          <n-grid :cols="3" :x-gap="24">
             <n-grid-item>
-              <n-form-item label="资质证明" path="qualification">
-                <n-input v-model:value="formData.qualification" placeholder="请输入资质证明" />
+              <n-form-item label="评级" path="rating">
+                <n-select
+                  v-model:value="formData.rating"
+                  :options="ratingOptions"
+                  placeholder="请选择评级"
+                />
               </n-form-item>
             </n-grid-item>
             
@@ -122,13 +114,28 @@
                 <n-input v-model:value="formData.deliveryTerms" placeholder="请输入交货条件" />
               </n-form-item>
             </n-grid-item>
+            
+            <n-grid-item span="2">
+              <n-form-item label="资质证明" path="qualification">
+                <n-input v-model:value="formData.qualification" placeholder="请输入资质证明" />
+              </n-form-item>
+            </n-grid-item>
+            
+            <n-grid-item>
+              <n-form-item label="状态" path="status">
+                <n-switch v-model:value="formData.status" />
+              </n-form-item>
+            </n-grid-item>
           </n-grid>
-          
-          <n-form-item label="备注" path="note">
+        </n-card>
+        
+        <n-card title="备注" class="mt-4">
+          <n-form-item path="note">
             <n-input
               v-model:value="formData.note"
               type="textarea"
-              placeholder="请输入备注"
+              placeholder="请输入备注信息"
+              :autosize="{ minRows: 3, maxRows: 5 }"
             />
           </n-form-item>
         </n-card>
@@ -136,7 +143,7 @@
       
       <template v-else>
         <n-card title="基本信息">
-          <n-descriptions bordered>
+          <n-descriptions bordered :column="3">
             <n-descriptions-item label="供应商编码">
               {{ supplier.code }}
             </n-descriptions-item>
@@ -155,16 +162,35 @@
             <n-descriptions-item label="电子邮箱">
               {{ supplier.email }}
             </n-descriptions-item>
+          </n-descriptions>
+        </n-card>
+        
+        <n-card title="地址信息" class="mt-4">
+          <n-descriptions bordered :column="3">
             <n-descriptions-item label="城市">
               {{ supplier.city }}
             </n-descriptions-item>
-            <n-descriptions-item label="地址" :span="2">
+            <n-descriptions-item label="详细地址" :span="2">
               {{ supplier.address }}
             </n-descriptions-item>
+          </n-descriptions>
+        </n-card>
+        
+        <n-card title="合作信息" class="mt-4">
+          <n-descriptions bordered :column="3">
             <n-descriptions-item label="评级">
               <n-tag :type="getRatingType(supplier.rating)">
                 {{ supplier.rating }}
               </n-tag>
+            </n-descriptions-item>
+            <n-descriptions-item label="付款条件">
+              {{ supplier.paymentTerms }}
+            </n-descriptions-item>
+            <n-descriptions-item label="交货条件">
+              {{ supplier.deliveryTerms }}
+            </n-descriptions-item>
+            <n-descriptions-item label="资质证明" :span="2">
+              {{ supplier.qualification }}
             </n-descriptions-item>
             <n-descriptions-item label="状态">
               <n-tag :type="supplier.status ? 'success' : 'error'">
@@ -174,74 +200,92 @@
           </n-descriptions>
         </n-card>
         
-        <n-card title="合作信息" class="mt-4">
-          <n-descriptions bordered>
-            <n-descriptions-item label="资质证明">
-              {{ supplier.qualification }}
-            </n-descriptions-item>
-            <n-descriptions-item label="付款条件">
-              {{ supplier.paymentTerms }}
-            </n-descriptions-item>
-            <n-descriptions-item label="交货条件">
-              {{ supplier.deliveryTerms }}
-            </n-descriptions-item>
-            <n-descriptions-item label="备注" :span="3">
-              {{ supplier.note || '无' }}
-            </n-descriptions-item>
-          </n-descriptions>
-        </n-card>
-        
-        <n-card title="采购记录" class="mt-4">
-          <n-data-table
-            :columns="purchaseColumns"
-            :data="purchases"
-            :bordered="false"
-            :pagination="{ pageSize: 5 }"
-          />
+        <n-card title="备注" class="mt-4">
+          <p>{{ supplier.note || '无' }}</p>
         </n-card>
       </template>
+      
+      <n-card title="采购记录" class="mt-4">
+        <n-data-table
+          :columns="purchaseColumns"
+          :data="purchases"
+          :pagination="{ pageSize: 5 }"
+          :loading="loading"
+        />
+      </n-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, h } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
-  NButton, NCard, NForm, NFormItem, NInput, NSelect, NSwitch,
-  NSpace, NGrid, NGridItem, NDescriptions, NDescriptionsItem,
-  NDataTable, NTag
+import { h } from 'vue'
+import {
+  NButton, NCard, NDescriptions, NDescriptionsItem, NForm, NFormItem,
+  NGrid, NGridItem, NInput, NSelect, NSpace, NSwitch, NTag, NDataTable,
+  useMessage
 } from 'naive-ui'
+import supplierService from '../services/supplier'
 
 const route = useRoute()
 const router = useRouter()
+const message = useMessage()
+const formRef = ref(null)
 
 // 响应式状态
-const loading = ref(false)
+const loading = ref(true)
 const saving = ref(false)
+const isEditing = ref(false)
 const supplier = ref({})
 const purchases = ref([])
-const isEditing = ref(false)
-const formRef = ref(null)
 
 // 表单数据
 const formData = reactive({
-  id: null,
   code: '',
   name: '',
-  type: '',
+  type: 'manufacturer',
   contactPerson: '',
   contactPhone: '',
   email: '',
   address: '',
   city: '',
-  rating: '',
+  rating: 'B',
   qualification: '',
-  paymentTerms: '',
-  deliveryTerms: '',
+  paymentTerms: '月结30天',
+  deliveryTerms: '供应商送货',
   status: true,
   note: ''
 })
+
+// 表单验证规则
+const rules = {
+  code: {
+    required: true,
+    message: '请输入供应商编码',
+    trigger: 'blur'
+  },
+  name: {
+    required: true,
+    message: '请输入供应商名称',
+    trigger: 'blur'
+  },
+  type: {
+    required: true,
+    message: '请选择供应商类型',
+    trigger: 'blur'
+  },
+  contactPerson: {
+    required: true,
+    message: '请输入联系人',
+    trigger: 'blur'
+  },
+  contactPhone: {
+    required: true,
+    message: '请输入联系电话',
+    trigger: 'blur'
+  }
+}
 
 // 供应商类型选项
 const typeOptions = [
@@ -260,39 +304,20 @@ const ratingOptions = [
   { label: 'D级', value: 'D' }
 ]
 
-// 表单验证规则
-const rules = {
-  code: [
-    { required: true, message: '请输入供应商编码', trigger: 'blur' }
-  ],
-  name: [
-    { required: true, message: '请输入供应商名称', trigger: 'blur' }
-  ],
-  type: [
-    { required: true, message: '请选择供应商类型', trigger: 'change' }
-  ],
-  contactPerson: [
-    { required: true, message: '请输入联系人', trigger: 'blur' }
-  ],
-  contactPhone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' }
-  ]
-}
-
-// 采购记录表格列
+// 采购记录表格列定义
 const purchaseColumns = [
   {
-    title: '采购单号',
+    title: '订单编号',
     key: 'orderNumber',
     width: 150
   },
   {
     title: '店铺',
     key: 'storeName',
-    width: 100
+    width: 120
   },
   {
-    title: '总金额',
+    title: '金额',
     key: 'totalAmount',
     width: 120,
     render(row) {
@@ -372,58 +397,62 @@ const loadSupplier = async () => {
   
   loading.value = true
   try {
-    // 模拟数据，实际应该从API获取
-    supplier.value = {
-      id: 1,
-      code: 'SUP001',
-      name: '供应商A',
-      type: 'manufacturer',
-      contactPerson: '张三',
-      contactPhone: '13800138001',
-      email: 'supplier_a@example.com',
-      address: '北京市朝阳区',
-      city: '北京',
-      rating: 'A',
-      qualification: '营业执照、生产许可证',
-      paymentTerms: '月结30天',
-      deliveryTerms: '供应商送货',
-      status: true,
-      note: ''
+    // 从 API 获取供应商详情
+    const response = await supplierService.getSupplier(id)
+    if (response) {
+      supplier.value = response
+      
+      // 复制数据到表单
+      Object.keys(formData).forEach(key => {
+        if (key in supplier.value) {
+          formData[key] = supplier.value[key]
+        }
+      })
+    } else {
+      message.error('未找到供应商信息')
+      router.push('/suppliers')
+      return
     }
     
-    // 复制数据到表单
-    Object.keys(formData).forEach(key => {
-      if (key in supplier.value) {
-        formData[key] = supplier.value[key]
-      }
-    })
-    
-    // 模拟采购记录
-    purchases.value = [
-      {
-        id: 1,
-        orderNumber: 'PO20230501001',
-        storeId: 1,
-        storeName: '总店',
-        totalAmount: 5000.00,
-        status: 'completed',
-        createdAt: '2023-05-01 10:30:00'
-      },
-      {
-        id: 3,
-        orderNumber: 'PO20230503001',
-        storeId: 2,
-        storeName: '分店1',
-        totalAmount: 2800.00,
-        status: 'approved',
-        createdAt: '2023-05-03 09:15:00'
-      }
-    ]
+    // 加载供应商相关的采购记录
+    try {
+      // 实际应用中取消下面注释，使用真实API调用
+      // const purchaseResponse = await purchaseService.getPurchasesBySupplier(id)
+      // purchases.value = purchaseResponse.items || []
+      
+      // 模拟数据，实际应用中删除
+      purchases.value = [
+        {
+          id: 1,
+          orderNumber: 'PO20230501001',
+          storeId: 1,
+          storeName: '总店',
+          totalAmount: 5000.00,
+          status: 'completed',
+          createdAt: '2023-05-01 10:30:00'
+        },
+        {
+          id: 3,
+          orderNumber: 'PO20230503001',
+          storeId: 2,
+          storeName: '分店1',
+          totalAmount: 2800.00,
+          status: 'approved',
+          createdAt: '2023-05-03 09:15:00'
+        }
+      ]
+    } catch (error) {
+      console.error('加载采购记录失败:', error)
+      message.error('加载采购记录失败')
+      purchases.value = []
+    }
     
     // 检查是否是编辑模式
     isEditing.value = route.query.edit === 'true'
   } catch (error) {
     console.error('加载供应商详情失败:', error)
+    message.error('加载供应商详情失败: ' + (error.message || '未知错误'))
+    router.push('/suppliers')
   } finally {
     loading.value = false
   }
@@ -452,8 +481,8 @@ const handleSave = () => {
     if (!errors) {
       saving.value = true
       try {
-        // 模拟保存，实际应该调用API
-        console.log('保存供应商:', formData)
+        // 调用API保存供应商数据
+        await supplierService.updateSupplier(supplier.value.id, formData)
         
         // 更新本地数据
         Object.keys(formData).forEach(key => {
@@ -461,9 +490,10 @@ const handleSave = () => {
         })
         
         isEditing.value = false
-        alert('供应商信息保存成功')
+        message.success('供应商信息保存成功')
       } catch (error) {
         console.error('保存供应商失败:', error)
+        message.error('保存供应商失败: ' + (error.message || '未知错误'))
       } finally {
         saving.value = false
       }

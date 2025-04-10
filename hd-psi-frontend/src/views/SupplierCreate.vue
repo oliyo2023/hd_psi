@@ -322,12 +322,7 @@ const handleSave = () => {
     saving.value = true
     try {
       // 调用API保存供应商数据
-      // 实际应用中取消下面注释，使用真实API调用
-      // await supplierService.createSupplier(formData)
-
-      // 模拟数据，实际应用中删除
-      console.log('保存供应商数据:', formData)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await supplierService.createSupplier(formData)
 
       message.success('供应商添加成功')
 

@@ -6,7 +6,7 @@
         添加供应商
       </n-button>
     </div>
-
+    
     <div class="page-content">
       <!-- 搜索工具栏 -->
       <div class="table-toolbar">
@@ -45,7 +45,7 @@
           </n-button>
         </div>
       </div>
-
+      
       <!-- 供应商表格 -->
       <n-data-table
         ref="tableRef"
@@ -64,7 +64,7 @@
 <script setup>
 import { ref, reactive, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import {
+import { 
   NButton, NDataTable, NInput, NSelect, NSpace, NTag, useMessage
 } from 'naive-ui'
 import supplierService from '../services/supplier'
@@ -234,80 +234,32 @@ const columns = [
 const loadSuppliers = async () => {
   loading.value = true
   try {
-    // 模拟数据，实际应该从API获取
-    suppliers.value = [
-      {
-        id: 1,
-        code: 'SUP001',
-        name: '供应商A',
-        type: 'manufacturer',
-        contactPerson: '张三',
-        contactPhone: '13800138001',
-        email: 'supplier_a@example.com',
-        address: '北京市朝阳区',
-        city: '北京',
-        rating: 'A',
-        qualification: '营业执照、生产许可证',
-        paymentTerms: '月结30天',
-        deliveryTerms: '供应商送货',
-        status: true,
-        note: ''
-      },
-      {
-        id: 2,
-        code: 'SUP002',
-        name: '供应商B',
-        type: 'wholesaler',
-        contactPerson: '李四',
-        contactPhone: '13800138002',
-        email: 'supplier_b@example.com',
-        address: '上海市浦东新区',
-        city: '上海',
-        rating: 'B',
-        qualification: '营业执照',
-        paymentTerms: '月结45天',
-        deliveryTerms: '自提',
-        status: true,
-        note: ''
-      },
-      {
-        id: 3,
-        code: 'SUP003',
-        name: '供应商C',
-        type: 'agent',
-        contactPerson: '王五',
-        contactPhone: '13800138003',
-        email: 'supplier_c@example.com',
-        address: '广州市天河区',
-        city: '广州',
-        rating: 'S',
-        qualification: '营业执照、代理证明',
-        paymentTerms: '预付款',
-        deliveryTerms: '供应商送货',
-        status: true,
-        note: ''
-      },
-      {
-        id: 4,
-        code: 'SUP004',
-        name: '供应商D',
-        type: 'other',
-        contactPerson: '赵六',
-        contactPhone: '13800138004',
-        email: 'supplier_d@example.com',
-        address: '深圳市南山区',
-        city: '深圳',
-        rating: 'C',
-        qualification: '营业执照',
-        paymentTerms: '货到付款',
-        deliveryTerms: '自提',
-        status: false,
-        note: '合作暂停'
-      }
-    ]
-    pagination.itemCount = suppliers.value.length
+    // 构建查询参数
+    const params = {
+      page: pagination.page,
+      limit: pagination.pageSize,
+      name: searchForm.name || undefined,
+      code: searchForm.code || undefined,
+      type: searchForm.type || undefined,
+      status: searchForm.status || undefined
+    }
+    
+    // 调用API获取供应商列表
+    const response = await supplierService.getSuppliers(params)
+    
+    // 处理响应数据
+    if (response && response.items) {
+      suppliers.value = response.items
+      pagination.itemCount = response.total || 0
+    } else {
+      suppliers.value = []
+      pagination.itemCount = 0
+    }
   } catch (error) {
     console.error('加载供应商列表失败:', error)
+    message.error('加载供应商列表失败: ' + (error.message || '未知错误'))
+    suppliers.value = []
+    pagination.itemCount = 0
   } finally {
     loading.value = false
   }
@@ -353,13 +305,15 @@ const handleEdit = (row) => {
 const handleDelete = async (row) => {
   if (confirm(`确定要删除供应商 ${row.name} 吗？`)) {
     try {
-      // 实际应用中取消下面注释，使用真实API调用
-      // await supplierService.deleteSupplier(row.id)
+      loading.value = true
+      await supplierService.deleteSupplier(row.id)
       message.success('删除成功')
-      loadSuppliers()
+      loadSuppliers() // 重新加载供应商列表
     } catch (error) {
       console.error('删除供应商失败:', error)
-      message.error('删除供应商失败')
+      message.error('删除供应商失败: ' + (error.message || '未知错误'))
+    } finally {
+      loading.value = false
     }
   }
 }
@@ -373,5 +327,28 @@ onMounted(() => {
 <style scoped>
 .supplier-list {
   padding: 16px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.table-toolbar {
+  margin-bottom: 16px;
+}
+
+.table-search {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 </style>
